@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lateness Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --accent: #f59e0b;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --text-main: #111827;
+      --muted: #6b7280;
+      --radius: 10px;
+      --shadow: 0 14px 30px rgba(15, 23, 42, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #e0ecff 0, #f3f4f6 45%, #e5e7eb 100%);
+      min-height: 100vh;
+      color: var(--text-main);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: rgba(15, 23, 42, 0.9);
+      color: #f9fafb;
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .brand-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      color: #e5e7eb;
+    }
+
+    .pill {
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .shell {
+      max-width: 1100px;
+      margin: 1.5rem auto 2.5rem;
+      padding: 0 1rem 2rem;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.5fr);
+      gap: 1.5rem;
+      align-items: stretch;
+      margin-bottom: 1.75rem;
+    }
+
+    @media (max-width: 820px) {
+      .intro {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem 1.4rem;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.9rem;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px dashed #93c5fd;
+    }
+
+    .hero-heading {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .hero-text {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 1.15rem;
+    }
+
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .stat-chip {
+      flex: 1 1 120px;
+      padding: 0.65rem 0.7rem;
+      border-radius: 9px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      font-size: 0.8rem;
+    }
+
+    .stat-label {
+      color: var(--muted);
+    }
+
+    .stat-value {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .stat-value--alert {
+      color: var(--danger);
+    }
+
+    .stat-value--ok {
+      color: var(--success);
+    }
+
+    .hero-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hero-footer span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .dot--live {
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+    }
+
+    .dot--email {
+      background: #38bdf8;
+    }
+
+    .form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 0.8rem;
+      margin-bottom: 0.8rem;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    input,
+    select,
+    textarea {
+      border-radius: 7px;
+      border: 1px solid #d1d5db;
+      padding: 0.5rem 0.55rem;
+      font-size: 0.9rem;
+      outline: none;
+      background: #f9fafb;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease,
+        background 0.16s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+      background: #ffffff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+      grid-column: 1 / -1;
+    }
+
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.4rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 0.55rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: transform 0.08s ease, box-shadow 0.08s ease,
+        background 0.1s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #f9fafb;
+      box-shadow: 0 12px 22px rgba(37, 99, 235, 0.45);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(37, 99, 235, 0.55);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 7px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 960px) {
+      .grid-two {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead {
+      background: #f3f4f6;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.5rem 0.35rem;
+    }
+
+    th {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: #4b5563;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    tbody tr:nth-child(odd) {
+      background: #ffffff;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .status-tag {
+      display: inline-flex;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .status-tag--late {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .status-tag--excused {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .pill-soft {
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .toast {
+      position: fixed;
+      right: 1.25rem;
+      bottom: 1.25rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: #022c22;
+      color: #ecfdf5;
+      font-size: 0.85rem;
+      box-shadow: 0 12px 25px rgba(15, 23, 42, 0.45);
+      display: none;
+      z-index: 50;
+    }
+
+    .toast-show {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      animation: fadeSlide 0.25s ease-out;
+    }
+
+    .toast-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    @keyframes fadeSlide {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-badge">LT</div>
+      <span>Lateness Tracker</span>
+    </div>
+    <div class="top-actions">
+      <span class="pill">Classroom lateness logging</span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="intro">
+      <article class="card">
+        <div class="card-header">
+          <h1 class="hero-heading">Record lateness quickly</h1>
+          <span class="badge">Today</span>
+        </div>
+        <p class="hero-text">
+          Record late arrivals, track minutes late, and keep an overview of student punctuality.
+        </p>
+        <div class="stats-row">
+          <div class="stat-chip">
+            <span class="stat-label">Today’s lateness</span>
+            <span class="stat-value stat-value--alert">7 students</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-label">Emails sent</span>
+            <span class="stat-value stat-value--ok">7 / 7 delivered</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-label">Average late time</span>
+            <span class="stat-value">08 min</span>
+          </div>
+        </div>
+        <div class="hero-footer">
+          <span><span class="dot dot--live"></span>Live daily overview</span>
+          <span><span class="dot dot--email"></span>Email notification ready</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-header">
+          <h2 class="card-title">Log a late arrival</h2>
+        </div>
+        <form id="latenessForm" class="form">
+          <div class="form-group">
+            <label for="studentName">Student name</label>
+            <input id="studentName" name="studentName" type="text" required placeholder="e.g. Ayesha Khan" />
+          </div>
+          <div class="form-group">
+            <label for="studentId">Student ID</label>
+            <input id="studentId" name="studentId" type="text" required placeholder="e.g. 9A-021" />
+          </div>
+          <div class="form-group">
+            <label for="class">Class / form</label>
+            <input id="class" name="class" type="text" required placeholder="e.g. 9A" />
+          </div>
+          <div class="form-group">
+            <label for="minutesLate">Minutes late</label>
+            <input id="minutesLate" name="minutesLate" type="number" min="1" required placeholder="e.g. 5" />
+          </div>
+          <div class="form-group">
+            <label for="reason">Reason (optional)</label>
+            <textarea id="reason" name="reason" placeholder="e.g. Bus delay, medical appointment"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="contactEmail">Parent / guardian email</label>
+            <input id="contactEmail" name="contactEmail" type="email" required placeholder="e.g. parent@example.com" />
+          </div>
+
+          <div class="form-footer">
+            <span>Use this form to record a late arrival.</span>
+            <button type="submit" class="btn btn-primary">
+              <span>Submit lateness</span>
+            </button>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <section class="grid-two">
+      <article class="card">
+        <div class="card-header">
+          <h2 class="card-title">Today’s lateness log</h2>
+          <span class="pill-soft">Period 1–3</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="latenessTable">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Minutes</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>08:47</td>
+                <td>Ayesha Khan</td>
+                <td>9A</td>
+                <td>7</td>
+                <td>
+                  <span class="status-tag status-tag--late">
+                    <span class="dot"></span> Late
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>08:52</td>
+                <td>Daniel Green</td>
+                <td>9B</td>
+                <td>5</td>
+                <td>
+                  <span class="status-tag status-tag--late">
+                    <span class="dot"></span> Late
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>09:03</td>
+                <td>Sara Ahmed</td>
+                <td>10C</td>
+                <td>10</td>
+                <td>
+                  <span class="status-tag status-tag--excused">
+                    <span class="dot"></span> Excused
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-header">
+          <h2 class="card-title">Admin overview</h2>
+        </div>
+        <p class="hero-text" style="margin-bottom:0.9rem;">
+          Summary of lateness activity and follow‑up actions.
+        </p>
+        <div class="stats-row">
+          <div class="stat-chip">
+            <span class="stat-label">High‑risk students</span>
+            <span class="stat-value stat-value--alert">3 flagged</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-label">Week‑to‑date late</span>
+            <span class="stat-value">24 entries</span>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-label">Next step</span>
+            <span class="stat-value">Email template audit</span>
+          </div>
+        </div>
+        <ul style="font-size:0.8rem; color:var(--muted); list-style:disc; padding-left:1.1rem; line-height:1.6;">
+          <li>Review students with repeated lateness.</li>
+          <li>Monitor total lateness across the week.</li>
+          <li>Plan actions such as parent contact or meetings.</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast">
+    <span class="toast-dot"></span>
+    <span>Lateness recorded.</span>
+  </div>
+
+ <script>
+  const form = document.getElementById('latenessForm');
+  const tableBody = document.querySelector('#latenessTable tbody');
+  const toast = document.getElementById('toast');
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('/api/lateness');
+      const records = await res.json();
+      records.forEach((r) => addRowToTable(r));
+    } catch (err) {
+      console.error('Failed to load records', err);
+    }
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const payload = {
+      studentName: formData.get('studentName'),
+      studentId: formData.get('studentId'),
+      class: formData.get('class'),
+      minutesLate: formData.get('minutesLate'),
+      reason: formData.get('reason'),
+      contactEmail: formData.get('contactEmail')
+    };
+
+    try {
+      const res = await fetch('/api/lateness', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        console.error('Server error', await res.text());
+        return;
+      }
+
+      const saved = await res.json();
+      addRowToTable(saved, true);
+      showToast();
+      form.reset();
+    } catch (err) {
+      console.error('Request failed', err);
+    }
+  });
+
+  function addRowToTable(record, prepend = false) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${record.time}</td>
+      <td>${record.studentName}</td>
+      <td>${record.class}</td>
+      <td>${record.minutesLate}</td>
+      <td>
+        <span class="status-tag status-tag--late">
+          <span class="dot"></span> Late
+        </span>
+      </td>
+    `;
+    if (prepend && tableBody.firstChild) {
+      tableBody.insertBefore(row, tableBody.firstChild);
+    } else if (prepend) {
+      tableBody.appendChild(row);
+    } else {
+      tableBody.appendChild(row);
+    }
+  }
+
+  function showToast() {
+    toast.classList.add('toast-show');
+    setTimeout(() => {
+      toast.classList.remove('toast-show');
+    }, 2600);
+  }
+</script>

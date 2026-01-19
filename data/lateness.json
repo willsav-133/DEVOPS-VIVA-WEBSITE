@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1768842459962,
+    "time": "17:07",
+    "studentName": "jon smith",
+    "studentId": "9a-022",
+    "class": "9A",
+    "minutesLate": 5,
+    "reason": "bus delay",
+    "contactEmail": "jonsmith@gmail.com",
+    "createdAt": "2026-01-19T17:07:39.962Z"
+  }
+]
