@@ -1,21 +1,27 @@
 pipeline {
-  agent any
+    agent any
 
-  stages {
-    stage('List files (debug)') {
-      steps {
-        sh 'ls -la'
-      }
-    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-    stage('Build') {
-      steps {
-        sh '''
-          set -e
-          echo "Build step running..."
-          # add your build commands here (npm install / python -m venv etc)
-        '''
-      }
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t lateness-tracker .'
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                sh '''
+                docker stop lateness-tracker || true
+                docker rm lateness-tracker || true
+                docker run -d -p 3000:3000 --name lateness-tracker lateness-tracker
+                '''
+            }
+        }
     }
-  }
 }
