@@ -1,17 +1,21 @@
 pipeline {
-    agent any
+  agent any
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/willsav-133/DEVOPS-VIVA-WEBSITE.git'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'docker build -t lateness-tracker .'
-            }
-        }
+  stages {
+    stage('List files (debug)') {
+      steps {
+        sh 'ls -la'
+      }
     }
+
+    stage('Build') {
+      steps {
+        sh '''
+          set -e
+          echo "Build step running..."
+          # add your build commands here (npm install / python -m venv etc)
+        '''
+      }
+    }
+  }
 }
